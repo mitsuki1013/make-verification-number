@@ -3,16 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/thoas/go-funk"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func main() {
-	inputs, err := makeVerificationNo(read())
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(inputs)
+	fmt.Println(strings.Join(makeVerificationNo(read()), "\n"))
 }
 
 func read() []string {
@@ -28,28 +26,27 @@ func read() []string {
 	return inputs
 }
 
-func makeVerificationNo(inputs []string) ([]string, error) {
-	for i, input := range inputs {
-		digitSum := 0
-		for digit, s := range input {
-			num, err := strconv.Atoi(string(s))
-			if err != nil {
-				return nil, fmt.Errorf("fail: %w", err)
-			}
-			if digit%2 != 0 {
-				digitSum += num
-				continue
-			}
-			if len(strconv.Itoa(num*2)) == 1 {
-				digitSum += num * 2
-				continue
-			}
-			digitSum += sumDigits(num * 2)
-		}
-
-		inputs[i] = input + strconv.Itoa(getVerificationNo(digitSum))
-	}
-	return inputs, nil
+func makeVerificationNo(inputs []string) []string {
+	return funk.Map(inputs, func(input string) string {
+		sumOfEachDigit := int(funk.Sum(
+			funk.Map(strToMap(input),
+				func(k int, s string) int {
+					num, err := strconv.Atoi(s)
+					if err != nil {
+						panic(err)
+					}
+					if k%2 != 0 {
+						return num
+					}
+					if len(strconv.Itoa(num*2)) == 1 {
+						return num * 2
+					}
+					return sumDigits(num * 2)
+				},
+			),
+		))
+		return input + strconv.Itoa(getVerificationNo(sumOfEachDigit))
+	}).([]string)
 }
 
 func sumDigits(i int) int {
@@ -67,4 +64,12 @@ func getVerificationNo(i int) int {
 		return 0
 	}
 	return 10 - i%10
+}
+
+func strToMap(s string) map[int]string {
+	m := map[int]string{}
+	for k, c := range s {
+		m[k] = string(c)
+	}
+	return m
 }
