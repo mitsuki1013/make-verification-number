@@ -29,24 +29,24 @@ func read() []string {
 func makeVerificationNo(inputs []string) []string {
 	return funk.Map(inputs, func(input string) string {
 		sumOfEachDigit := int(funk.Sum(
-			funk.Map(strToMap(input),
-				func(k int, s string) int {
-					num, err := strconv.Atoi(s)
-					if err != nil {
-						panic(err)
-					}
-					if k%2 != 0 {
-						return num
-					}
-					if len(strconv.Itoa(num*2)) == 1 {
-						return num * 2
-					}
-					return sumDigits(num * 2)
-				},
-			),
+			funk.Map(strToMap(input), logic),
 		))
 		return input + strconv.Itoa(getVerificationNo(sumOfEachDigit))
 	}).([]string)
+}
+
+func logic(k int, s string) int {
+	num, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	if k%2 != 0 {
+		return num
+	}
+	if len(strconv.Itoa(num*2)) == 1 {
+		return num * 2
+	}
+	return sumDigits(num * 2)
 }
 
 func sumDigits(i int) int {
